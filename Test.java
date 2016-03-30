@@ -1,3 +1,4 @@
+
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -6,13 +7,16 @@ public class Test {
 	static Board b = new Board();
 	static Board[] boards;
 	static int N = 9;
-	static int numth = 4;
+	int numth;
 	static int numboards;
 	static AtomicInteger index = new AtomicInteger(0);
 	static boolean puzzleSolved = false;
-	private Thread threads[] = new Thread[numth];
+	private Thread threads[];
 
-
+	Test(int n){
+		numth = n;
+		threads = new Thread[numth];
+	}
 	class myRunnable implements Runnable {
 		Board myBoard;
 		int id;
@@ -23,11 +27,12 @@ public class Test {
 		}
 
 		public void run() {
+			long start = System.nanoTime();
 			int myIndex = index.getAndIncrement();
 			while (myIndex < numboards && !puzzleSolved) {
 				myBoard = new Board(boards[myIndex]);
 				System.out.println("Thread "+id+" checking board "+myIndex+" of "+numboards);
-				if (force(0,0,myBoard)) {System.out.println("Solved by Thread "+id); puzzleSolved = true;}
+				if (force(0,0,myBoard)) {System.out.println("Solved by Thread "+id+" on board "+myIndex+" in "+(System.nanoTime()-start)/10000 + " milliseconds"); puzzleSolved = true;}
 				myIndex = index.getAndIncrement();
 			}
 		}
@@ -84,11 +89,11 @@ public class Test {
 
 
 
-		Vector <Board> bs = new Vector <Board>();
+		//Vector <Board> bs = new Vector <Board>();
 		int l = 0;
 		int m = 0;
 		numboards = 0;
-		int numcellsToPush = 6;
+		int numcellsToPush = 3;
 		int[] permsToPush = new int[numcellsToPush];
 		int[] cellsToPush = new int[numcellsToPush];
 		int[][] valsToPush = new int[numcellsToPush][9];
@@ -99,11 +104,11 @@ public class Test {
 				if (b.vals[i][j] == 0) {
 					for (int k=0; k<9; k++) {
 						if (b.posvalues[i][j][k]) {
-							bs.add(new Board(b));
+							//bs.add(new Board(b));
 							valsToPush[l][permsToPush[l]] = k+1;
 							permsToPush[l]++;
 						}
-					cellsToPush[l] = m;
+					cellsToPush[l] = m-1;
 					}
 					l++;
 				}
@@ -112,97 +117,75 @@ public class Test {
 			if(l == numcellsToPush) break;
 
 		}
-
-		numboards = bs.size();
+		numboards = 1;
+		for (int i=0; i<numcellsToPush; i++) numboards *= permsToPush[i];
 		boards = new Board[numboards];
-		bs.toArray(boards);
+		for (int i=0; i<numboards; i++) {boards[i] = new Board(b);}
+
+		//numboards = bs.size();
+		//boards = new Board[numboards];
+		//bs.toArray(boards);
 		l=0;
-		int stride = 1;
-		int p=0;
-
+		int stride = 45;
 		for (int i=0; i<numcellsToPush; i++) {
-			stride = numboards/(stride*permsToPush[i]);
+			stride = stride/(permsToPush[i]);
 			int which = 0;
+			int count = 0;
 			for (int j = 0; j<numboards; j++) {
-				which = (which + j/stride) % permsToPush[i];
+				count++;
+				if(count == stride) {count = 0; which++; which = which%permsToPush[i];}
+				//which = (which + j/stride) % permsToPush[i];
 				boards[j].setvalue(cellsToPush[i]/9, cellsToPush[i]%9, valsToPush[i][which]);
+				
 
 			}
 		}
-
-
-		/*for (int i=0; i<9; i++) {
-			for (int j=0; j<9; j++) {
-				if(b.vals[i][j] != 0) {
-					stride = numboards / (stride * permsToPush[p]);
-					for (int k=0; k<numboards; k++) {
-						for (int q=0; q<permsToPush[p]) 
-
-					}
-				}
-			}
-		}
-
-*/
-
-
-
-
-/*
-		for (int k=0; k<81; k++) {
-			for (int i=0; i<9; i++) {
-				if (b.posvalues[k/9][k%9][i] && b.vals[k/9][k%9] == 0) {
-					bs.add(new Board(b));
-				}
-			}
-			if (b.vals[k/9][k%9] == 0) l++;
-			if(l >=6) break;
-		}
-		boards = new Board[bs.size()];
-		bs.toArray(boards);
-		numboards = l;
-
-		l = 0;
-		for (int k=0; k<81; k++) {
-			for (int i=0; i<9; i++) {
-				if (b.posvalues[k/9][k%9][i] && b.vals[k/9][k%9] == 0) {
-					boards[j].setvalue(k/9,k%9,i+1);
-					j++;
-				}
-			}
-			if (b.vals[k/9][k%9] == 0) l++;
-			if(l >=6) break;
-		}*/
-
-		/*for (int i=0; i<9; i++) {
-			if (b.posvalues[0][0][i]) {
-				boards[j].setvalue(0,0,i+1);
-				j++;
-			}
-		}*/
-		//numboards = j;
-		System.out.println("boards has size "+bs.size());
-
-
 
 
 		System.out.println("Original Board\n");
 		b.print();
+		
 
 		/*boolean solved = force(0,0,b);
 		if (solved) System.out.println("Solved\n");
 		else System.out.println("Not Solved\n");*/
-
-		Test t = new Test();
+		
+		long initTime = System.nanoTime();
+		System.out.println("T\n\n");
+		Test t = new Test(1);
 		t.createThreads();
-
+		if (!solution.isSolved()) System.out.println("Solution is incorrect\n");
+		
+		
+		System.out.println("T1\n\n");
 		index.set(0);
 		puzzleSolved = false;
-
-		Test t1 = new Test();
+		//solution.print();
+		Test t1 = new Test(2);
 		t1.createThreads();
+		
+		System.out.println("T2\n\n");
+		index.set(0);
+		puzzleSolved = false;
+		//solution.print();
+		Test t2 = new Test(3);
+		t2.createThreads();
+		
+		System.out.println("T3\n\n");
+		index.set(0);
+		puzzleSolved = false;
+		//solution.print();
+		Test t3 = new Test(4);
+		t3.createThreads();
+		
+		System.out.println("T4\n\n");
+		index.set(0);
+		puzzleSolved = false;
+		//solution.print();
+		Test t4 = new Test(10);
+		t4.createThreads();
 
-
+		System.out.println(" In total, that took " + (System.nanoTime() - initTime)/1000000 + " milliseconds");
 		solution.print();
 	}
 
@@ -289,11 +272,21 @@ class Board {
 		int rowstart = 3 * (row / 3);
 		int colstart = 3 * (col / 3);
 		for (int i=0; i<9; i++) {
-			if (vals[row][i] == x) return false;
-			if (vals[i][col] == x) return false;
-			if (vals[rowstart + i/3][colstart + i%3] == x) return false;
+			if (vals[row][i] == x && i != col) return false;
+			if (vals[i][col] == x && i != row) return false;
+			if (vals[rowstart + i/3][colstart + i%3] == x && (rowstart + i/3) != row && (colstart + i%3) != col) return false;
 		}
 		return true;
+	}
+	
+	boolean isSolved() {
+		boolean solved = true;
+		for (int i=0; i<9; i++){
+			for (int j=0; j<9; j++) {
+				if (!isValid(i,j,vals[i][j])) solved = false;
+			}
+		}
+		return solved;
 	}
 
 	void print() {
