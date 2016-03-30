@@ -1,24 +1,43 @@
 package Sudoku;
 
-
 public class Sudoku {
 	public static int[][] board;
 	static boolean[][][] posvalues;
 
 	Sudoku() {
-		board = new int[9][9];
-		posvalues = new boolean[9][9][9];
+		board = new int[9][9]; // initializing board
+		posvalues = new boolean[9][9][9]; // initializing options for each cell
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
-				//board[i][j] = 0;
 				for (int ii = 0; ii < 9; ii++) {
-					posvalues[i][j][ii] = true;
+					posvalues[i][j][ii] = true; // Setting all options to true
 				}
 			}
 		}
 	}
 
-	public int[] Getrow(int row) {
+	public void setvalue(int row, int column, int value) { 	// Puts a number in the board and sets all possible values to false showing the cell has been written to while also updating the effected row/column/square
+		if (value != 0) {
+			board[row][column] = value;
+			for (int j = 0; j < 9; j++) {
+				posvalues[row][column][j] = false;
+				posvalues[j][column][value - 1] = false;
+				posvalues[row][j][value - 1] = false;
+				int r = (row / 3) * 3;
+				int c = (column / 3) * 3;
+				for (int i = 0; i < 9; i++) {
+					posvalues[(r + (i % 3))][c + (i / 3)][value - 1] = false;
+				}
+
+			}
+		}
+	}
+
+	int getvalue(int row, int column) { // Checks the value in a cell
+		return board[row][column];
+	}
+	
+	public int[] Getrow(int row) { // returns the row array
 		int[] rows = new int[9];
 
 		for (int i = 0; i < 9; i++) {
@@ -27,7 +46,7 @@ public class Sudoku {
 		return rows;
 	}
 
-	public int[] Getcol(int col) {
+	public int[] Getcol(int col) { // returns the column array
 		int[] cols = new int[9];
 
 		for (int i = 1; i < 10; i++) {
@@ -36,227 +55,34 @@ public class Sudoku {
 		return cols;
 	}
 
-	
-	
-	
-	
-	 public boolean Elimination(int row,int col) {
-			
-			 int j=0;
-			 for(int i=0;i<9;i++){
-				 if(Sudoku.posvalues[row][col][i])
-					 j++;
-			 }
-			 if(j==1){
-				 int ii=0;
-				 while(!Sudoku.posvalues[row][col][ii]){
-					 ii++;
-				 }
-				 setvalue(row,col,ii+1);
-				 return true;
-			 }
-			 return false;
-		 }
-	
-	
-	
-     boolean loneRanger(int row, int col) {
-         boolean found;
-         for (int x = 1; x<10; x++){
-                 found = false;
-                 if(posvalues[row][col][x-1]) {
-                         for (int i=0; i<9; i++) {
-                                 if (posvalues[row][i][x-1] && i != col) found = true;
-                                 if (posvalues[i][col][x-1] && i != row) found = true;
-                         }
-                         for (int i=0; i<3; i++) {
-                                 for (int j=0; j<3; j++) {
-                                         if (posvalues[row/3+i][col/3+j][x-1] && ((row/3+i) != row && (col/3+j) != col)) found = true;
-                                 }
-                         }
-                         if(!found) {
-                         setvalue(row,col,x);
-                         return true;
-                         }
-                 }
-         }
-         return false;
- }
-
-	
-	
-	
-	
-	public void SetPosValues(int rowindex, int colindex) {
-		// need to copy in values from square thread, row thread and col thread
-		// run from row 1 column 1 to row 1 column 9 all the way until row 9
-		// column 9
-		// if value in square go to next value
-		// if value in same row/column go to next value
-		// if none of above store value in an array to be returned
-		// if return 1 value then place it in cell
-		// if returns more than 1 value keep 0 in cell.
-		int[] rowchecker = new int[9];
-		rowchecker = Getrow(rowindex);
-		int[] colchecker = new int[9];
-		colchecker = Getcol(colindex);
-		int[] retArray = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		if (rowindex < 4) {
-			if (colindex < 4) {
-				int[] squarechecker = { Sudoku.board[1][1], Sudoku.board[1][2], Sudoku.board[1][3], Sudoku.board[2][1],
-						Sudoku.board[2][2], Sudoku.board[2][3], Sudoku.board[3][1], Sudoku.board[3][2],
-						Sudoku.board[3][3] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			} else if (colindex < 7) {
-				// second square
-
-				int[] squarechecker = { Sudoku.board[1][4], Sudoku.board[1][5], Sudoku.board[1][6], Sudoku.board[2][4],
-						Sudoku.board[2][5], Sudoku.board[2][6], Sudoku.board[3][4], Sudoku.board[3][5],
-						Sudoku.board[3][6] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
+	int[] getSquare(int squareval) { // returns the square array squares are defined from 0-8 going from top left to top right then down a square like a book
+		int firstcol = (squareval * 3) % 9;
+		int firstrow = (squareval / 3) * 3;
+		int[] square = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int j = 0; j < 3; j++) {
+			for (int i = 0; i < 3; i++) {
+				square[3 * j + i] = board[firstrow + j][firstcol + i];
 			}
+		}
+		return square;
+	}
 
-			else if (colindex < 10) {
-				// third square
+	boolean[][] getSquareposvalues(int squareval) {//returns the possible values for the cells in a square
+		int firstcol = (squareval * 3) % 9;
+		int firstrow = (squareval / 3) * 3;
+		boolean[][] square = new boolean[9][9];
 
-				int[] squarechecker = { Sudoku.board[1][7], Sudoku.board[1][8], Sudoku.board[1][9], Sudoku.board[2][7],
-						Sudoku.board[2][8], Sudoku.board[2][9], Sudoku.board[3][7], Sudoku.board[3][8],
-						Sudoku.board[3][9] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			}
-		} else if (rowindex < 7) {
-			if (colindex < 4) {
-				// fourth square
-
-				int[] squarechecker = { Sudoku.board[4][1], Sudoku.board[4][2], Sudoku.board[4][3], Sudoku.board[5][1],
-						Sudoku.board[5][2], Sudoku.board[5][3], Sudoku.board[6][1], Sudoku.board[6][2],
-						Sudoku.board[6][3] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			}
-
-			else if (colindex < 7) {
-				// fifth square
-
-				int[] squarechecker = { Sudoku.board[4][4], Sudoku.board[4][5], Sudoku.board[4][6], Sudoku.board[5][4],
-						Sudoku.board[5][5], Sudoku.board[5][6], Sudoku.board[6][4], Sudoku.board[6][5],
-						Sudoku.board[6][6] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			}
-
-			else if (colindex < 10) {
-				// sixth square
-
-				int[] squarechecker = { Sudoku.board[4][7], Sudoku.board[4][8], Sudoku.board[4][9], Sudoku.board[5][7],
-						Sudoku.board[5][8], Sudoku.board[5][9], Sudoku.board[6][7], Sudoku.board[6][8],
-						Sudoku.board[6][9] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			}
-		} else if (rowindex < 10) {
-			if (colindex < 4) {
-				// seventh square
-
-				int[] squarechecker = { Sudoku.board[7][1], Sudoku.board[7][2], Sudoku.board[7][3], Sudoku.board[8][1],
-						Sudoku.board[8][2], Sudoku.board[8][3], Sudoku.board[9][1], Sudoku.board[9][2],
-						Sudoku.board[9][3] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			}
-
-			else if (colindex < 7) {
-				// eighth square
-
-				int[] squarechecker = { Sudoku.board[7][4], Sudoku.board[7][5], Sudoku.board[7][6], Sudoku.board[8][4],
-						Sudoku.board[8][5], Sudoku.board[8][6], Sudoku.board[9][4], Sudoku.board[9][5],
-						Sudoku.board[9][6] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
-				}
-			}
-
-			else if (colindex < 10) {
-				// ninth square
-
-				int[] squarechecker = { Sudoku.board[7][7], Sudoku.board[7][8], Sudoku.board[7][9], Sudoku.board[8][7],
-						Sudoku.board[8][8], Sudoku.board[8][9], Sudoku.board[9][7], Sudoku.board[9][8],
-						Sudoku.board[9][9] };
-				for (int j = 1; j < 10; j++) {
-					for (int i = 1; i < 10; i++) {// checking value 1-9
-						if (Sudoku.board[rowindex][i] == j || Sudoku.board[i][colindex] == j || squarechecker[i] == j) {
-							Sudoku.posvalues[rowindex][colindex][j] = false;
-						}
-					}
+		for (int ii = 0; ii < 9; ii++) {
+			for (int j = 0; j < 3; j++) {
+				for (int i = 0; i < 3; i++) {
+					square[3 * j + i][ii] = posvalues[firstrow + j][firstcol + i][ii];
 				}
 			}
 		}
+		return square;
 	}
 
-	public void setvalue(int row, int column, int value) {
-		if(value!=0){
-			board[row][column] = value;
-			for (int j = 0; j < 9; j++) {
-				posvalues[row][column][j] = false;
-				posvalues[j][column][value-1]=false;
-				posvalues[row][j][value-1]=false;
-				int r = (row / 3) * 3;
-				int c = (column / 3) * 3;
-				for (int i = 0; i < 9; i++){
-					posvalues[(r + (i % 3))] [c + (i / 3)][value-1]=false; 
-				}
-			
-			}
-		}
-	}
-
-	int getvalue(int row, int column) {
-		return board[row][column];
-	}
-
-	void Printboard() {
+	void Printboard() { // Displays the board for the user
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
 				System.out.print(board[i][j] + "\t");
@@ -266,63 +92,167 @@ public class Sudoku {
 		System.out.println("\n");
 	}
 
-	void Printvalue(int i, int j) {
+	void Printvalue(int i, int j) { // Displays value in cell
 		System.out.print(board[i][j]);
 		System.out.println("\n");
 	}
 
-	void Printposvalues(int row, int col) {
+	void Printposvalues(int row, int col) { //Displays the options for the cell
 		for (int k = 0; k < 9; k++) {
 
 			System.out.print(posvalues[row][col][k] + "\t");
 		}
 		System.out.println("\n");
 	}
+	
+	public boolean Elimination(int row, int col) { // Looks for only one possible option in the cell if found writes to the board and updates possible values
+		int j = 0;
+		for (int i = 0; i < 9; i++) {
+			if (Sudoku.posvalues[row][col][i])
+				j++;
+		}
+		if (j == 1) {
+			int ii = 0;
+			while (!Sudoku.posvalues[row][col][ii]) {
+				ii++;
+			}
+			setvalue(row, col, ii + 1);
+			return true;
+		}
+		return false;
+	}
+
+	boolean loneRanger(int row, int col) { // Looks for a number that only appears once in the possible option array. If so then it writes that value and updates possible values
+		boolean found;
+		for (int x = 0; x < 9; x++) {
+			found = false;
+			if (posvalues[row][col][x]) {
+				int rowstart = row / 3;
+				int colstart = col / 3;
+				for (int i = 0; i < 9; i++) {
+					if (posvalues[row][i][x] && i != col)
+						found = true;
+					if (posvalues[i][col][x] && i != row)
+						found = true;
+					if (posvalues[rowstart + i / 3][colstart + i % 3][x] && (rowstart + i / 3) != row
+							&& (colstart + i % 3) != col)
+						found = true;
+				}
+				if (!found) {
+					setvalue(row, col, x + 1);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	boolean FindTwins(int index, int type) { // item can be row column or square array (defined by index and type) from the possible values variable. If finds twin numbers that only appear in two indexes and they are the same two, eliminates all other options in those cells
+		int counttwin1 = 0;
+		boolean[][] item = new boolean[9][9];
+		if (type == 0) { // type 0=row type 1=column type2=square
+			item = posvalues[index];
+		}
+		if (type == 1) {
+			for (int j = 0; j < 9; j++) {
+				item[j] = posvalues[j][index];
+			}
+		}
+		if (type == 2) {
+			item = getSquareposvalues(index);
+		}
+		int[] indextwin1 = new int[2];
+		for (int twin1 = 0; twin1 < 9; twin1++) {
+			for (int j = 0; j < 9; j++) {
+				if (item[j][twin1] == true) {
+					counttwin1++;
+					if (counttwin1 <= 2) {
+						indextwin1[counttwin1 - 1] = j;
+					} else {
+						counttwin1 = 0;
+						break;
+					}
+				}
+			}
+			if (counttwin1 == 2) {
+				boolean istwin = false;
+				for (int twin2 = 0; twin2 < 9; twin2++) {
+					if (twin2 != twin1) {
+						if (item[indextwin1[0]][twin2] == true) {
+							if (item[indextwin1[1]][twin2] == true) {
+								istwin = true;
+								for (int j = 0; j < 9; j++) {
+									if (j != indextwin1[0] && j != indextwin1[1] && item[j][twin2]) {
+										istwin = false;
+										break;
+									}
+								}
+							}
+						}
+					}
+					if (istwin) { // update the possible values cell based on which type it is
+						if (type == 0) {
+							for (int k = 0; k < 9; k++) {
+								if (k != twin1 && k != twin2) {
+									posvalues[index][indextwin1[0]][k] = false;
+									posvalues[index][indextwin1[1]][k] = false;
+								}
+							}
+						}
+						if (type == 1) {
+							for (int k = 0; k < 9; k++) {
+								if (k != twin1 && k != twin2) {
+									posvalues[indextwin1[0]][index][k] = false;
+									posvalues[indextwin1[1]][index][k] = false;
+								}
+							}
+						}
+						if (type == 2) {
+							for (int k = 0; k < 9; k++) {
+								if (k != twin1 && k != twin2) {
+									posvalues[(index / 3) * 3 + indextwin1[0] / 3][(index * 3) % 9
+											+ (indextwin1[0] % 3)][k] = false;
+									posvalues[(index / 3) * 3 + indextwin1[1] / 3][(index * 3) % 9
+											+ (indextwin1[1] % 3)][k] = false;
+								}
+							}
+						}
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		return false;
+	}
 
 	public static void main(String[] args) {
 		Sudoku a = new Sudoku();
-		int[][] puzzle1 = {{0,2,9,0,0,0,3,1,0},{0,8,0,0,0,0,4,0,9},{3,0,6,0,2,0,0,0,0},{0,6,0,0,3,1,7,0,0},{0,0,0,0,5,8,0,0,0},{0,0,0,0,0,0,0,0,0},{0,3,7,0,0,6,0,8,0},{0,0,1,0,0,0,5,0,0},{0,9,0,0,8,0,0,3,7}};
-		for(int i=0;i<9;i++){
-			for(int j=0;j<9;j++){
+		
+		int[][] puzzle1 = { { 0, 2, 9, 0, 0, 0, 3, 1, 0 }, 
+							{ 0, 8, 0, 0, 0, 0, 4, 0, 9 }, 
+							{ 3, 0, 6, 0, 2, 0, 0, 0, 0 },
+							{ 0, 6, 0, 0, 3, 1, 7, 0, 0 }, 
+							{ 0, 0, 0, 0, 5, 8, 0, 0, 0 }, 
+							{ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+							{ 0, 3, 7, 0, 0, 6, 0, 8, 0 }, 
+							{ 0, 0, 1, 0, 0, 0, 5, 0, 0 }, 
+							{ 0, 9, 0, 0, 8, 0, 0, 3, 7 } };
+		
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
 				a.setvalue(i, j, puzzle1[i][j]);
-			}
-		}
-		/*int[][] puzzle2 = {{0,2,0,0,9,0,5,0,7},
-						   {8,0,9,0,0,0,0,0,0},
-						   {0,7,0,4,0,0,0,2,9},
-						   {0,0,4,0,0,0,0,0,6},
-						   {3,0,0,0,0,4,0,0,5},
-						   {0,0,0,0,5,9,4,1,0},
-						   {2,0,0,0,0,7,0,0,0},
-						   {0,0,7,0,0,1,0,3,2},
-						   {5,0,1,3,2,0,0,7,0}};
-	
-		for(int i=0;i<9;i++){
-			for(int j=0;j<9;j++){
-				a.setvalue(i, j, puzzle2[i][j]);
-			}
-		}
-	*/	
-		a.Printboard();
-		/*boolean changedElim = true;
-		while(changedElim) {
-			changedElim=false;
-			for(int i=0;i<9;i++){
-				for(int j=0;j<9;j++){
-					if(a.Elimination(i, j)) changedElim = true;
-				}
-			}
-		}
-*/		boolean changedRanger=true;
-		while(changedRanger){
-			changedRanger=false;
-			for(int i=0;i<9;i++){
-				for(int j=0;j<9;j++){
-					if(a.loneRanger(i, j)) changedRanger=true;
-				}
 			}
 		}
 		
 		a.Printboard();
+
+		/*
+		 * boolean changedElim = true; boolean changedRanger=true;
+		 * while(changedElim||changedRanger) { changedElim=false;
+		 * changedRanger=false; for(int i=0;i<9;i++){ for(int j=0;j<9;j++){
+		 * if(a.Elimination(i, j)) changedElim = true; if(a.loneRanger(i, j))
+		 * changedRanger=true; } } }
+		 */
 	}
 }
