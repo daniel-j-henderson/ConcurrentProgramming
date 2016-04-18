@@ -18,6 +18,7 @@ public class Test {
 	static int numboards;
 	static AtomicInteger index = new AtomicInteger(0);
 	static boolean puzzleSolved = false;
+	static double addTime;
 	private Thread threads[];
 
 	Test(int n, boolean h){
@@ -112,22 +113,22 @@ public class Test {
 
 					solvedit = myBoard.isSolved();
 					if (solvedit) {puzzleSolved = true; solution = myBoard;}
-					htime = htime + (System.nanoTime() - htime);
+					//htime = htime + (System.nanoTime() - htime);
 				}
 
 				
 				if(!solvedit) solvedit = force(0,0,myBoard);
-				htime = (htime - start) / 1000000.0;
-				double totaltime = (System.nanoTime()-start)/1000000.0;
-				double ftime = totaltime - htime;
-
+				//htime = (htime - start) / 1000000.0;
+				//double totaltime = (System.nanoTime()-start)/1000000.0;
+				//double ftime = totaltime - htime;
+				//totaltime += addTime;
 				if (solvedit) {
 					puzzleSolved = true;
 					if (USE_HUMANISTIC) {
-						System.out.println("Solved by Thread "+id+" on board "+myIndex+" in "+ totaltime + " milliseconds \n\tHumn. Alg. Time: " + htime + " Brute Force Time: " + ftime); 
+					//	System.out.println("Solved by Thread "+id+" on board "+myIndex+" in "+ totaltime + " milliseconds \n\tHumn. Alg. Time: " + htime + " Brute Force Time: " + ftime); 
 					}
 					else {
-						System.out.println("Solved by Thread "+id+" on board "+myIndex+" in "+(System.nanoTime()-start)/1000000.0 + " milliseconds"); 
+					//	System.out.println("Solved by Thread "+id+" on board "+myIndex+" in "+(System.nanoTime()-start)/1000000.0 + addTime + " milliseconds"); 
 					}
 				}
 				myIndex = index.getAndIncrement();
@@ -196,7 +197,7 @@ public class Test {
 
 		System.out.println("Original Board\n");
 		b.print();
-
+		long timea = System.nanoTime();
 		int l = 0;
 		int m = 0;
 		numboards = 0;
@@ -246,40 +247,46 @@ public class Test {
 		}
 
 		
-		long initTime = System.nanoTime();
-		System.out.println("\n\nWith 1 Thread:\n");
-		Test t = new Test(1, hum);
-		t.createThreads();
-		if (!solution.isSolved()) System.out.println("Solution is incorrect\n");
-		
-		
+		long initTime = System.nanoTime();	
+		addTime = (initTime - timea) / 1000000.0;
+
+		long timer1 = System.nanoTime();
+
 		System.out.println("\n\nWith 2 Threads:\n");
 		index.set(0);
+		timer1 = System.nanoTime();
 		puzzleSolved = false;
 		//solution.print();
 		Test t1 = new Test(2, hum);
 		t1.createThreads();
-		
-		System.out.println("\n\nWith 3 Threads:\n");
-		index.set(0);
-		puzzleSolved = false;
-		//solution.print();
-		Test t2 = new Test(3, hum);
-		t2.createThreads();
+		System.out.println("That took "+((System.nanoTime() - timer1) / 1000000.0 + addTime) + "ms");
 		
 		System.out.println("\n\nWith 4 Threads:\n");
 		index.set(0);
+		timer1 = System.nanoTime();
 		puzzleSolved = false;
 		//solution.print();
-		Test t3 = new Test(4, hum);
-		t3.createThreads();
+		Test t2 = new Test(4, hum);
+		t2.createThreads();
+		System.out.println("That took "+((System.nanoTime() - timer1) / 1000000.0 + addTime) + "ms");
 		
-		System.out.println("\n\nWith 10 Threads:\n");
+		System.out.println("\n\nWith 8 Threads:\n");
 		index.set(0);
+		timer1 = System.nanoTime();
 		puzzleSolved = false;
 		//solution.print();
-		Test t4 = new Test(10, hum);
+		Test t3 = new Test(8, hum);
+		t3.createThreads();
+		System.out.println("That took "+((System.nanoTime() - timer1) / 1000000.0 + addTime) + "ms");
+		
+		System.out.println("\n\nWith 16 Threads:\n");
+		index.set(0);
+		timer1 = System.nanoTime();
+		puzzleSolved = false;
+		//solution.print();
+		Test t4 = new Test(16, hum);
 		t4.createThreads();
+		System.out.println("That took "+((System.nanoTime() - timer1) / 1000000.0 + addTime) + "ms");
 
 		System.out.println(" In total, that took " + (System.nanoTime() - initTime)/1000000 + " milliseconds");
 		solution.print();
